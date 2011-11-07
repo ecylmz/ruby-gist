@@ -99,7 +99,7 @@ def sub_page
 end
 
 def main_page
-  `git chechout -b gh-pages; git checkout gh-pages`
+  `git checkout gh-pages`
   template = ERB.new File.read(MAIN_PATH + "/_scripts/templates/main_template.erb")
   gists = Array.new
   id_map = LABEL_DATA[:id_map]
