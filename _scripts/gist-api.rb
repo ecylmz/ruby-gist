@@ -109,7 +109,6 @@ def main_page
     gist["label"] = label
     gist["sum_label"] = ids.size
     gists << gist
-    p gists
   end
   content = template.result(binding)
   file = File.open("index.html","w")
