@@ -6,6 +6,7 @@ require "net/https"
 require "uri"
 require 'json'
 require 'yaml'
+require 'erb'
 require 'x/util/git'
 include X::Util
 
