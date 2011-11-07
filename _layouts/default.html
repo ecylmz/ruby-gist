@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="tr" lang="tr">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="author" content="{{ site.param.fullname }}" />
+  <title>{{ page.title }}</title>
+
+  <link rel="stylesheet" href="/chrome/site.css"   type="text/css" media="screen, projection" />
+  <link rel="stylesheet" href="/chrome/syntax.css" type="text/css" />
+  <link rel="stylesheet" href="/chrome/local.css"  type="text/css" media="screen, projection" />
+  <style type="text/css" media="screen, print">
+    #gist {
+      background-color: #9C000D;
+      border-radius: 0.3em 0.3em 0.3em 0.3em;
+      color: white;
+      padding-bottom: 0.2em;
+      padding-left: 0.3em;
+      padding-top: 0.2em;
+      margin-bottom: 1em;
+      font-size: 110%;
+    }
+    .site .title {
+      height: 4em;
+    }
+  </style>
+<script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js?ver=1.4.2'></script> 
+<script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js?ver=1.8.4'></script>
+  <script>
+  $(document).ready(function() {
+    $("#accordion").accordion({ 
+    collapsible: true, 
+    autoHeight: false, 
+    active: true 
+});
+  });
+  </script>
+</head>
+<body>
+  <div class="site">
+    {% unless site.param.logo == null %}
+    <a href="/" title="logo" id="logo" style="background-image:url('{{ site.param.logo }}');"></a>
+    {% endunless %}
+
+    <div class="title">
+
+    </div>
+    {{ content }}
+
+    <div class="footer">
+      <div class="contact">
+	<p>
+	  {{ site.param.fullname }}<br />
+	  {{ site.param.title }}<br />
+	  {% if site.param.email %}
+	    <a href="mailto:please.no.spam.please{{ site.param.email }}please.no.spam.please"
+	      onclick="this.href=this.href.replace(/please[.]no[.]spam[.]please/gi,'')"
+	      title="Lütfen e-posta göndermek için tıklayın" >
+	    E-posta adresi</a><br />
+	  {% endif %}
+	  {% if site.param.gpg %}
+	    GnuPG ortak anahtar
+	  {% endif %}
+	</p>
+      </div>
+      <div class="contact">
+	<p>
+	  <a href="http://github.com/{{ site.account }}/">github.com/{{ site.account }}</a><br />
+	  <a href="{{ site.param.twitter }}/">{{ site.param.twitter }}</a><br />
+	  {% if site.param.flickr %}
+	    <a href="{{ site.param.flickr }}/">{{ site.param.flickr }}</a><br />
+	  {% endif %}
+	  {% if site.param.gpg %}
+	    <a href="{{ site.url }}/{{ site.param.user }}.asc"><code>{{ site.param.gpg }}</code></a>
+	  {% endif %}
+	</p>
+      </div>
+
+      {% unless site.param.google == null %}
+      <div class="google">
+      <form action="http://www.google.com/search" id="search" method="get">
+	<input class="text" name="q" type="text" />
+	<input name="sitesearch" type="hidden" value="{{ site.url }}" />
+	<input class="button" type="submit" value="Ara" />
+      </form>
+      </div>
+      {% endunless %}
+    </div>
+  </div>
+
+  {% unless site.param.ribbon == null %}
+  <div class="ribbon">
+    <a href="http://github.com/{{ site.account }}/{{ site.repository }}" rel="me" alt="{{ site.param.ribbon }}">{{ site.param.ribbon }}</a>
+  </div>
+  {% endunless %}
+  {% unless site.param.googleanalyticsid == null %}
+  <!-- Google Analytics start -->
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', '{{ site.param.googleanalyticsid }}']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+  <!-- Google Analytics end -->
+  {% endunless %}
+</body>
+</html>
