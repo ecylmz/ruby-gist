@@ -76,7 +76,7 @@ def sub_page
     Dir.chdir(MAIN_PATH + label)
     gist = Hash.new
     if id_map[label].size == 1
-      gist["label"] = label
+      gist["label"] = label.first
       gist["id"] = ids
       gist["description"] = description[ids]
       gists << gist
