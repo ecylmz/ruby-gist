@@ -79,7 +79,6 @@ def sub_page
       gist["label"] = label
       gist["id"] = ids
       gist["description"] = description[ids]
-      p gist, gists
       gists << gist
     else
       ids.each do |id|
@@ -95,7 +94,7 @@ def sub_page
     file = File.open("index.html","w")
     file.puts content
     file.close
-    gists = Hash.new
+    gists = Array.new
     `git add index.html`
     `git commit -a -m "güncellendi"`
   end
