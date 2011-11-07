@@ -79,6 +79,7 @@ def sub_page
       gist["label"] = label
       gist["id"] = ids
       gist["description"] = description[ids]
+      p gist, gists
       gists << gist
     else
       ids.each do |id|
@@ -86,6 +87,7 @@ def sub_page
         gist["label"] = label
         gist["id"] = id
         gist["description"] = description[id]
+        p gist, gists
         gists << gist
       end
     end
