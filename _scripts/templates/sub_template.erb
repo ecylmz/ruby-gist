@@ -1,0 +1,12 @@
+---
+layout: default
+title: Gistlerim
+---
+
+<h1 id="gist"> <%= label %> </h1>
+
+<div id="accordion">
+<% gists.each do |gist| %>
+  <h3><a href="#"><%= gist["description"] %></a></h3>
+  <div><script src="https://gist.github.com/<%= gist["id"] %>.js"></script></div>
+<% end %>
