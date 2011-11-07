@@ -86,7 +86,6 @@ def sub_page
         gist["label"] = label
         gist["id"] = id
         gist["description"] = description[id]
-        p gist, gists
         gists << gist
       end
     end
@@ -110,6 +109,7 @@ def main_page
     gist["label"] = label
     gist["sum_label"] = ids.size
     gists << gist
+    p gists
   end
   content = template.result(binding)
   file = File.open("index.html","w")
