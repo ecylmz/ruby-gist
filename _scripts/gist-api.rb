@@ -13,7 +13,7 @@ include X::Util
 username = Git.config(:login)
 
 def fetch_gists_data
-  uri = URI.parse("https://api.github.com/users/ecylmz/gists")
+  uri = URI.parse("https://api.github.com/users/#{username}/gists")
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
   http.verify_mode = OpenSSL::SSL::VERIFY_NONE
