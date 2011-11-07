@@ -10,10 +10,10 @@ require 'erb'
 require 'x/util/git'
 include X::Util
 
-username = Git.config(:login)
+USERNAME = Git.config(:login)
 
 def fetch_gists_data
-  uri = URI.parse("https://api.github.com/users/#{username}/gists")
+  uri = URI.parse("https://api.github.com/users/#{USERNAME}/gists")
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
   http.verify_mode = OpenSSL::SSL::VERIFY_NONE
