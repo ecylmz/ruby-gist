@@ -106,8 +106,8 @@ def sub_page
     file.close
     gists = Array.new
     `git add index.html`
-    `git commit -a -m "güncellendi"`
   end
+  `git commit -a -m "güncellendi"`
 end
 
 def main_page
@@ -120,9 +120,6 @@ def main_page
       :label     => label,
       :sum_label => ids.size
     }
-    # gist = Hash.new
-    # gist["label"] = label
-    # gist["sum_label"] = ids.size
     gists << gist
   end
   content = template.result(binding)
