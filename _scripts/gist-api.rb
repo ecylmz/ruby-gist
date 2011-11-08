@@ -46,9 +46,21 @@ def fetch_label
 end
 
 LABEL_DATA = fetch_label
-config = YAML::parse( File.open( "../_config.yml" ) )
-MAIN_PATH = config.transform['main_path']
-Dir.chdir(MAIN_PATH)
+if !File.exist? "../_config.yml"
+  raise IOError.new "../_config.yml dosyası olmadan devam edilemez."
+else
+  config = YAML::parse( File.open( "../_config.yml" ) )
+  if config.transform['main_path'].nil?
+    raise NameError.new "_config.yml dosyasında main_path tanımlanmamış."
+  else
+    MAIN_PATH = config.transform['main_path']
+    if !File.exist? MAIN_PATH
+      raise IOError.new "#{MAIN_PATH} dizini olmadan devam edilemez."
+    else
+      Dir.chdir(MAIN_PATH)
+    end
+  end
+end
 
 def git_submodule
   id_map = LABEL_DATA[:id_map]
