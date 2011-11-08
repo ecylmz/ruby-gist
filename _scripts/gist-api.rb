@@ -2,8 +2,8 @@
 # encoding: utf-8
 
 
-require "net/https"
-require "uri"
+require 'net/https'
+require 'uri'
 require 'json'
 require 'yaml'
 require 'erb'
@@ -19,22 +19,19 @@ def fetch_gists_data
   http.verify_mode = OpenSSL::SSL::VERIFY_NONE
   request = Net::HTTP::Get.new(uri.request_uri)
   response = http.request(request)
-  data = response.body
-  gist_data = JSON.parse(data)
+  gist_data = JSON.parse(response.body)
   gist_data
 end
 
 def fetch_label
   gist_data = fetch_gists_data
-  gist_count = gist_data.size
   descriptions = Hash.new
   id_map = Hash.new
   gist_data.each do |gist|
     use_label = gist['description']
     description = use_label
-    label_id = gist['id']
-    label_id = label_id.to_i
-    if use_label != '' and use_label != nil
+    label_id = gist['id'].to_i
+    if use_label != '' and !use_label.nil?
       labels = use_label[/.*\[([^\]]*)/,1].split
       labels.each do |label|
         unless id_map.include? label
