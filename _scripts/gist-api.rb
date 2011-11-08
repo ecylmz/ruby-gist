@@ -106,8 +106,8 @@ def sub_page
     file.close
     gists = Array.new
     `git add index.html`
+    `git commit -a -m "güncellendi"`
   end
-  `git commit -a -m "güncellendi"`
 end
 
 def main_page
