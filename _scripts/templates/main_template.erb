@@ -6,5 +6,5 @@ title: Gistlerim
 <h1 id="gist"> Gistlerim </h1>
 
 <% gists.each do |gist| %>
-  <li><a href="<%= gist["label"] %>"> <%= gist["label"] %> ( <%= gist["sum_label"] %> ) </a></li>
+  <li><a href="<%= gist[:label] %>"> <%= gist["label"] %> ( <%= gist[:sum_label] %> ) </a></li>
 <% end %>

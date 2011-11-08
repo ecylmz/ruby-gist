@@ -83,7 +83,6 @@ def sub_page
   end
   id_map.each_pair do |label, ids|
     Dir.chdir(MAIN_PATH + label)
-    #gist = Hash.new
     if id_map[label].size == 1
       gist = {
         :label       => label,
@@ -91,11 +90,6 @@ def sub_page
         :description => description[ids]
       }
       gists << gist
-      # gist = Hash.new
-      # gist["label"] = label
-      # gist["id"] = ids.first
-      # gist["description"] = description[ids]
-      # gists << gist
     else
       ids.each do |id|
         gist = {
@@ -104,11 +98,6 @@ def sub_page
           :description => description[id]
         }
         gists << gist
-        # gist = Hash.new
-        # gist["label"] = label
-        # gist["id"] = id
-        # gist["description"] = description[id]
-        # gists << gist
       end
     end
     content = template.result(binding)
@@ -127,9 +116,13 @@ def main_page
   gists = Array.new
   id_map = LABEL_DATA[:id_map]
   id_map.each_pair do |label, ids|
-    gist = Hash.new
-    gist["label"] = label
-    gist["sum_label"] = ids.size
+    gist = {
+      :label     => label,
+      :sum_label => ids.size
+    }
+    # gist = Hash.new
+    # gist["label"] = label
+    # gist["sum_label"] = ids.size
     gists << gist
   end
   content = template.result(binding)
