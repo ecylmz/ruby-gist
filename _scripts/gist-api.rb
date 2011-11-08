@@ -83,8 +83,9 @@ def sub_page
   end
   id_map.each_pair do |label, ids|
     Dir.chdir(MAIN_PATH + label)
-    gist = Hash.new
+    #gist = Hash.new
     if id_map[label].size == 1
+      gist = Hash.new
       gist["label"] = label
       gist["id"] = ids.first
       gist["description"] = description[ids]
