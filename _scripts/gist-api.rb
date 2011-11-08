@@ -11,6 +11,21 @@ require 'x/util/git'
 include X::Util
 
 USERNAME = Git.config(:login)
+AUTO_COMMIT_MESSAGE = 'güncellendi'
+TEMPLATES_DIR = '_templates'
+CONFIG_FILE = '_config.yml'
+
+def get_template(template)
+  ERB.new File.read(File.join(MAIN_PATH, TEMPLATES_DIR, template + '.erb'))
+end
+
+def emit_page(template, binding)
+      content = get_template(template).result(binding)
+      outfile = 'index.html'
+      File.open(outfile, "w") { |f| f.puts content }
+      `git add #{outfile}`
+      `git commit -a -m #{AUTO_COMMIT_MESSAGE}`
+end
 
 def fetch_gists_data
   uri = URI.parse("https://api.github.com/users/#{USERNAME}/gists")
@@ -19,105 +34,75 @@ def fetch_gists_data
   http.verify_mode = OpenSSL::SSL::VERIFY_NONE
   request = Net::HTTP::Get.new(uri.request_uri)
   response = http.request(request)
-  data = response.body
-  gist_data = JSON.parse(data)
-  gist_data
+  JSON.parse(response.body)
+rescue Timeout::Error
+  # TODO bu istisnayı (ve varsa başka istisnaları) yönetelim
 end
 
-def fetch_label
-  gist_data = fetch_gists_data
-  gist_count = gist_data.size
-  descriptions = Hash.new
-  id_map = Hash.new
-  gist_data.each do |gist|
-    use_label = gist['description']
-    description = use_label
-    label_id = gist['id']
-    label_id = label_id.to_i
-    if use_label != '' and use_label != nil
-      labels = use_label[/.*\[([^\]]*)/,1].split
-      labels.each do |label|
-        unless id_map.include? label
-          id_map[label] = Array.new
-        end
-        id_map[label] << label_id
-        descriptions[label_id] = description
-      end
+def load_label_data
+  gists_data = fetch_gists_data
+  id_map = {}, descriptions = {}
+  gists_data.each do |gist|
+    description = gist['description']
+    next if description.nil? or description.empty?
+    use_label[/.*\[([^\]]*)/, 1].split do |label|
+      label, id = *[label, gist['id']].map(&:to_sym) # anahtarlar sembol olmalı
+      id_map[label] = [] unless id_map.include? label
+      id_map[label] << id
+      descriptions[id] = description
     end
   end
   {:id_map => id_map, :descriptions => descriptions}
 end
 
-LABEL_DATA = fetch_label
-config = YAML::parse( File.open( "../_config.yml" ) )
-MAIN_PATH = config.transform['main_path']
-Dir.chdir(MAIN_PATH)
-
-def git_submodule
-  id_map = LABEL_DATA[:id_map]
+def git_submodule(label_data)
   `git checkout master`
-  id_map.each_pair do |label,ids|
-    ids.each do |id|
-      `git submodule add git://gist.github.com/#{id}.git #{id}`
-    end
+  label_data[:id_map].values.flatten.uniq do |id|
+    `git submodule add git://gist.github.com/#{id}.git #{id}`
   end
-  `git commit -a -m "güncellendi."`
+  `git commit -a -m #{AUTO_COMMIT_MESSAGE}`
 end
 
-def sub_page
-  template = ERB.new File.read(MAIN_PATH + "/_scripts/templates/sub_template.erb")
-  gists = Array.new
-  id_map = LABEL_DATA[:id_map]
-  description = LABEL_DATA[:descriptions]
-  id_map.each_key do |label|
-    if !File.exist?(MAIN_PATH + label) then Dir.mkdir(label) end
-  end
-  id_map.each_pair do |label, ids|
-    Dir.chdir(MAIN_PATH + label)
-    gist = Hash.new
-    if id_map[label].size == 1
-      gist["label"] = label
-      gist["id"] = ids.first
-      gist["description"] = description[ids]
-      gists << gist
-    else
-      ids.each do |id|
-        gist = Hash.new
-        gist["label"] = label
-        gist["id"] = id
-        gist["description"] = description[id]
-        gists << gist
+def sub_page(label_data)
+  gists = []
+  label_data[:id_map].each do |label, ids|
+    Dir.mkdir(label) unless File.exist? label
+    FileUtils.chdir(label) do
+      # Dir.chdir(MAIN_PATH + label)
+      gists = ids.collect do |id|
+        { :id => id, :label => label, :description => label_data[:descriptions][id] }
       end
+      emit_page('sub_page', binding)
     end
-    content = template.result(binding)
-    file = File.open("index.html","w")
-    file.puts content
-    file.close
-    gists = Array.new
-    `git add index.html`
-    `git commit -a -m "güncellendi"`
   end
 end
 
-def main_page
+def main_page(label_data)
   `git checkout gh-pages`
-  template = ERB.new File.read(MAIN_PATH + "/_scripts/templates/main_template.erb")
-  gists = Array.new
-  id_map = LABEL_DATA[:id_map]
-  id_map.each_pair do |label, ids|
-    gist = Hash.new
-    gist["label"] = label
-    gist["sum_label"] = ids.size
-    gists << gist
+  gists = label_data[:id_map].collect do |label, ids|
+    { :label => label, :sum_label => ids.size }
   end
-  content = template.result(binding)
-  file = File.open("index.html","w")
-  file.puts content
-  file.close
-  `git add index.html`
-  `git commit -a -m "güncellendi"`
-  sub_page
+  emit_page('main_page', binding)
+  sub_page(label_data)
 end
 
-git_submodule
-main_page
+if ! File.exist? CONFIG_FILE
+  $stderr.puts "Bu betiği tepe dizinde çalıştırmalısınız"
+  exit(1)
+end
+config = YAML::parse(File.open(CONFIG_FILE))
+
+MAIN_PATH = config.transform['main_path']
+if MAIN_PATH.nil? or MAIN_PATH.empty?
+  $stderr.puts "Yerel Gist dizini tanımlanmamış"
+  exit(1)
+elsif ! File.directory? MAIN_PATH
+  $stderr.puts "Yerel Gist dizini '#{MAIN_PATH}' bulunamadı"
+  exit(1)
+end
+
+label_data = load_label_data
+FileUtils.chdir(MAIN_PATH) do
+  git_submodule(label_data)
+  main_page(label_data)
+end
