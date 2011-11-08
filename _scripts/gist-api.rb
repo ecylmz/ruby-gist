@@ -85,18 +85,30 @@ def sub_page
     Dir.chdir(MAIN_PATH + label)
     #gist = Hash.new
     if id_map[label].size == 1
-      gist = Hash.new
-      gist["label"] = label
-      gist["id"] = ids.first
-      gist["description"] = description[ids]
+      gist = {
+        :label       => label,
+        :id          => ids.first,
+        :description => description[ids]
+      }
       gists << gist
+      # gist = Hash.new
+      # gist["label"] = label
+      # gist["id"] = ids.first
+      # gist["description"] = description[ids]
+      # gists << gist
     else
       ids.each do |id|
-        gist = Hash.new
-        gist["label"] = label
-        gist["id"] = id
-        gist["description"] = description[id]
+        gist = {
+          :label       => label,
+          :id          => id,
+          :description => description[id]
+        }
         gists << gist
+        # gist = Hash.new
+        # gist["label"] = label
+        # gist["id"] = id
+        # gist["description"] = description[id]
+        # gists << gist
       end
     end
     content = template.result(binding)
