@@ -44,7 +44,8 @@ def load_label_data
   gist_data.each do |gist|
     description = gist['description']
     if description != '' and !description.nil?
-      description[/.*\[([^\]]*)/, 1].split.each do |label|
+      description[/.*\[([^\]]*)/, 1].split do |label|
+
         label, id = *[label, gist['id']].map(&:to_sym)
         id_map[label] = [] unless id_map.include? label
         id_map[label] << id
@@ -55,25 +56,9 @@ def load_label_data
   {:id_map => id_map, :descriptions => descriptions}
 end
 
-LABEL_DATA = fetch_label
-if !File.exist? "../_config.yml"
-  raise IOError.new "../_config.yml dosyası olmadan devam edilemez."
-else
-  config = YAML::parse( File.open( "../_config.yml" ) )
-  if config.transform['main_path'].nil?
-    raise NameError.new "_config.yml dosyasında main_path tanımlanmamış."
-  else
-    MAIN_PATH = config.transform['main_path']
-    if !File.exist? MAIN_PATH
-      raise IOError.new "#{MAIN_PATH} dizini olmadan devam edilemez."
-    else
-      Dir.chdir(MAIN_PATH)
-    end
-  end
-end
-
 def git_submodule(label_data)
   `git checkout master`
+  p label_data[:id_map]
   label_data[:id_map].values.flatten.uniq do |id|
     `git submodule add git://gist.github.com/#{id}.git #{id}`
   end
@@ -102,5 +87,23 @@ def main_page(label_data)
   sub_page(label_data)
 end
 
-git_submodule
-main_page
+if ! File.exist? CONFIG_FILE
+  $stderr.puts "Bu betiği tepe dizinde çalıştırmalısınız"
+  exit(1)
+end
+config = YAML::parse(File.open(CONFIG_FILE))
+
+MAIN_PATH = config.transform['main_path']
+if MAIN_PATH.nil? or MAIN_PATH.empty?
+  $stderr.puts "Yerel Gist dizini tanımlanmamış"
+  exit(1)
+elsif ! File.directory? MAIN_PATH
+  $stderr.puts "Yerel Gist dizini '#{MAIN_PATH}' bulunamadı"
+  exit(1)
+end
+
+label_data = load_label_data
+FileUtils.chdir(MAIN_PATH) do
+  git_submodule(label_data)
+  main_page(label_data)
+end
