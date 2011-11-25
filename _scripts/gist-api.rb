@@ -67,7 +67,8 @@ end
 def sub_page(label_data)
   gists = []
   label_data[:id_map].each do |label, ids|
-    Dir.mkdir(label) unless File.exists? label
+    p label
+    Dir.mkdir(label) unless File.exist? label
     FileUtils.chdir(label) do
       gists = ids.collect do |id|
         { :id => id, :label => label, :description => label_data[:descriptions][id] }
