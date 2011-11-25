@@ -58,6 +58,7 @@ end
 
 def git_submodule(label_data)
   `git checkout master`
+  p label_data
   label_data[:id_map].values.flatten.uniq do |id|
     `git submodule add git://gist.github.com/#{id}.git #{id}`
   end
