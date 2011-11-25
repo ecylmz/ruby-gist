@@ -40,15 +40,14 @@ end
 
 def load_label_data
   gist_data = fetch_gists_data
-  id_map = {}, descriptions = {}
+  id_map = {}
+  descriptions = {}
   gist_data.each do |gist|
     description = gist['description']
     if description != '' and !description.nil?
       description[/.*\[([^\]]*)/, 1].split.each do |label|
-        p label, gist['id'].class
         label, id = *[label, gist['id']].map(&:to_sym)
-        p label, id
-        id_map[label] = Array.new unless id_map.include? label
+        id_map[label] = [] unless id_map.include? label
         id_map[label] << id
         descriptions[id] = description
       end
