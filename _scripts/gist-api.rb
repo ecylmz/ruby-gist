@@ -59,7 +59,7 @@ end
 def git_submodule(label_data)
   `git checkout master`
   label_data[:id_map].values.flatten.uniq do |id|
-    `git submodule add git://gist.github.com/#{id}.git #{id}`
+  `git submodule add git://gist.github.com/#{id}.git #{id}`
   end
   `git commit -a -m #{AUTO_COMMIT_MESSAGE}`
 end
@@ -67,7 +67,6 @@ end
 def sub_page(label_data)
   gists = []
   label_data[:id_map].each do |label, ids|
-    p label
     Dir.mkdir(label.to_s) unless File.exist? label.to_s
     FileUtils.chdir(label.to_s) do
       gists = ids.collect do |id|
