@@ -40,8 +40,7 @@ end
 
 def load_label_data
   gist_data = fetch_gists_data
-  id_map = {}
-  descriptions = {}
+  id_map, descriptions = {}, {}
   gist_data.each do |gist|
     description = gist['description']
     if description != '' and !description.nil?
