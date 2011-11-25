@@ -7,10 +7,26 @@ require 'uri'
 require 'json'
 require 'yaml'
 require 'erb'
+require 'fileutils'
 require 'x/util/git'
 include X::Util
 
 USERNAME = Git.config(:login)
+AUTO_COMMIT_MESSAGE = 'güncellendi.'
+TEMPLATES_DIR = '_templates'
+CONFIG_FILE = '_config.yml'
+
+def get_template(template)
+  ERB.new File.read(File.join(MAIN_PATH, TEMPLATES_DIR, template + '.erb'))
+end
+
+def emit_page(template, binding)
+  content = get_template(template).result(binding)
+  outfile = 'index.html'
+  File.open(outfile, "w") { |f| f.puts content }
+  `git add #{outfile}`
+  `git commit -a -m #{AUTO_COMMIT_MESSAGE}`
+end
 
 def fetch_gists_data
   uri = URI.parse("https://api.github.com/users/#{USERNAME}/gists")
@@ -19,26 +35,20 @@ def fetch_gists_data
   http.verify_mode = OpenSSL::SSL::VERIFY_NONE
   request = Net::HTTP::Get.new(uri.request_uri)
   response = http.request(request)
-  gist_data = JSON.parse(response.body)
-  gist_data
+  JSON.parse(response.body)
 end
 
-def fetch_label
+def load_label_data
   gist_data = fetch_gists_data
-  descriptions = Hash.new
-  id_map = Hash.new
+  id_map = {}, descriptions = {}
   gist_data.each do |gist|
-    use_label = gist['description']
-    description = use_label
-    label_id = gist['id'].to_i
-    if use_label != '' and !use_label.nil?
-      labels = use_label[/.*\[([^\]]*)/,1].split
-      labels.each do |label|
-        unless id_map.include? label
-          id_map[label] = Array.new
-        end
-        id_map[label] << label_id
-        descriptions[label_id] = description
+    description = gist['description']
+    if description != '' and !description.nil?
+      description[/.*\[([^\]]*)/, 1].split.each do |label|
+        label, id = *[label, gist['id']].map(&:to_sym)
+        id_map[label] = [] unless id_map.include? label
+        id_map[label] << id
+        descriptions[id] = description
       end
     end
   end
@@ -62,73 +72,34 @@ else
   end
 end
 
-def git_submodule
-  id_map = LABEL_DATA[:id_map]
+def git_submodule(label_data)
   `git checkout master`
-  id_map.each_pair do |label,ids|
-    ids.each do |id|
-      `git submodule add git://gist.github.com/#{id}.git #{id}`
-    end
+  label_data[:id_map].values.flatten.uniq do |id|
+    `git submodule add git://gist.github.com/#{id}.git #{id}`
   end
-  `git commit -a -m "güncellendi."`
+  `git commit -a -m #{AUTO_COMMIT_MESSAGE}`
 end
 
-def sub_page
-  template = ERB.new File.read(MAIN_PATH + "/_scripts/templates/sub_template.erb")
-  gists = Array.new
-  id_map = LABEL_DATA[:id_map]
-  description = LABEL_DATA[:descriptions]
-  id_map.each_key do |label|
-    if !File.exist?(MAIN_PATH + label) then Dir.mkdir(label) end
-  end
-  id_map.each_pair do |label, ids|
-    Dir.chdir(MAIN_PATH + label)
-    if id_map[label].size == 1
-      gist = {
-        :label       => label,
-        :id          => ids.first,
-        :description => description[ids]
-      }
-      gists << gist
-    else
-      ids.each do |id|
-        gist = {
-          :label       => label,
-          :id          => id,
-          :description => description[id]
-        }
-        gists << gist
+def sub_page(label_data)
+  gists = []
+  label_data[:id_map].each do |label, ids|
+    Dir.mkdir(label) unless File.exist? label
+    FileUtils.chdir(label) do
+      gists = ids.collect do |id|
+        { :id => id, :label => label, :description => label_data[:descriptions][id] }
       end
+      emit_page('sub_page', binding)
     end
-    content = template.result(binding)
-    file = File.open("index.html","w")
-    file.puts content
-    file.close
-    gists = Array.new
-    `git add index.html`
-    `git commit -a -m "güncellendi"`
   end
 end
 
-def main_page
+def main_page(label_data)
   `git checkout gh-pages`
-  template = ERB.new File.read(MAIN_PATH + "/_scripts/templates/main_template.erb")
-  gists = Array.new
-  id_map = LABEL_DATA[:id_map]
-  id_map.each_pair do |label, ids|
-    gist = {
-      :label     => label,
-      :sum_label => ids.size
-    }
-    gists << gist
+  gists = label_data[:id_map].collect do |label, ids|
+    { :label => label, :sum_label => ids.size }
   end
-  content = template.result(binding)
-  file = File.open("index.html","w")
-  file.puts content
-  file.close
-  `git add index.html`
-  `git commit -a -m "güncellendi"`
-  sub_page
+  emit_page('main_page', binding)
+  sub_page(label_data)
 end
 
 git_submodule
