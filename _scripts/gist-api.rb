@@ -40,12 +40,12 @@ end
 
 def load_label_data
   gist_data = fetch_gists_data
-  id_map = {}, descriptions = {}
+  id_map = {}
+  descriptions = {}
   gist_data.each do |gist|
     description = gist['description']
     if description != '' and !description.nil?
-      description[/.*\[([^\]]*)/, 1].split do |label|
-
+      description[/.*\[([^\]]*)/, 1].split.each do |label|
         label, id = *[label, gist['id']].map(&:to_sym)
         id_map[label] = [] unless id_map.include? label
         id_map[label] << id
@@ -58,7 +58,7 @@ end
 
 def git_submodule(label_data)
   `git checkout master`
-  p label_data[:id_map]
+  p label_data
   label_data[:id_map].values.flatten.uniq do |id|
     `git submodule add git://gist.github.com/#{id}.git #{id}`
   end
