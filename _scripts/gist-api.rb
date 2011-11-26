@@ -15,7 +15,7 @@ CONFIG_FILE = '_config.yml'
 
 def get_username
   value = ENV["GITHUB_USER"]
-  value =  %x(git config --global --get github.user1 2>/dev/null).chomp if value.nil? || value.empty?
+  value =  %x(git config --global --get github.user 2>/dev/null).chomp if value.nil? || value.empty?
   value
 end
 
