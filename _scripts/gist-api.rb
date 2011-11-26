@@ -11,10 +11,19 @@ require 'fileutils'
 require 'x/util/git'
 include X::Util
 
-USERNAME = Git.config(:login)
+# USERNAME = Git.config(:login)
+USERNAME = get_username
 AUTO_COMMIT_MESSAGE = 'güncellendi.'
 TEMPLATES_DIR = '_templates'
 CONFIG_FILE = '_config.yml'
+
+def get_username
+  value = ENV["GITHUB_USER"]
+  if value.nil? || value.empty?
+    value =  %x(git config --global --get github.user 2>/dev/null).chomp
+  end
+  value
+end
 
 def get_template(template)
   ERB.new File.read(File.join(MAIN_PATH, TEMPLATES_DIR, template + '.erb'))
