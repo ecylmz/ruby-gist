@@ -8,20 +8,14 @@ require 'json'
 require 'yaml'
 require 'erb'
 require 'fileutils'
-require 'x/util/git'
-include X::Util
 
-# USERNAME = Git.config(:login)
-# USERNAME = get_username
 AUTO_COMMIT_MESSAGE = 'güncellendi.'
 TEMPLATES_DIR = '_templates'
 CONFIG_FILE = '_config.yml'
 
 def get_username
   value = ENV["GITHUB_USER"]
-  if value.nil? || value.empty?
-    value =  %x(git config --global --get github.user 2>/dev/null).chomp
-  end
+  value =  %x(git config --global --get github.user1 2>/dev/null).chomp if value.nil? || value.empty?
   value
 end
 
@@ -92,6 +86,11 @@ def main_page(label_data)
   end
   emit_page('main_page', binding)
   sub_page(label_data)
+end
+
+if get_username.empty? || get_username.nil?
+  $stderr.puts "Github kullanıcı adı tanımlı değil"
+  exit(1)
 end
 
 if ! File.exist? CONFIG_FILE
