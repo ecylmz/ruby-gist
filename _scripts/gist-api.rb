@@ -12,7 +12,7 @@ require 'x/util/git'
 include X::Util
 
 # USERNAME = Git.config(:login)
-USERNAME = get_username
+# USERNAME = get_username
 AUTO_COMMIT_MESSAGE = 'güncellendi.'
 TEMPLATES_DIR = '_templates'
 CONFIG_FILE = '_config.yml'
@@ -38,7 +38,7 @@ def emit_page(template, binding)
 end
 
 def fetch_gists_data
-  uri = URI.parse("https://api.github.com/users/#{USERNAME}/gists")
+  uri = URI.parse("https://api.github.com/users/#{get_username}/gists")
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
   http.verify_mode = OpenSSL::SSL::VERIFY_NONE
